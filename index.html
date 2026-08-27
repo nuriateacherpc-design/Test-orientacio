@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quin és el teu perfil professional?</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #06b6d4;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin: 1rem;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.9rem;
+            margin: 0.6rem 0;
+            background-color: #334155;
+            color: var(--text);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: transparent;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .result-card {
+            background: #0f172a;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border-left: 5px solid var(--accent);
+        }
+
+        .result-card h3 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #334155;
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- Pantalla d'inici -->
+        <div id="welcome-screen">
+            <h1>Descobreix el teu Perfil Professional</h1>
+            <p class="subtitle">Respon aquest test complet de 12 preguntes per descobrir quins perfils s'adapten millor a la teva manera de ser i quins treballs podries fer.</p>
+            <button class="btn btn-primary" onclick="startTest()">Començar el Test 🚀</button>
+        </div>
+
+        <!-- Pantalla de preguntes -->
+        <div id="question-screen" class="hidden">
+            <span id="question-progress" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+            <h2 id="question-text" style="font-size: 1.2rem; margin-top: 0.5rem; margin-bottom: 1.2rem;"></h2>
+            <div id="answers-container"></div>
+        </div>
+
+        <!-- Pantalla de resultats -->
+        <div id="result-screen" class="hidden">
+            <h1>Els teus Resultats 🎉</h1>
+            <div id="result-content"></div>
+            <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="restartTest()">Tornar a fer el test 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        const profiles = {
+            tecnologic: { name: "El Tecnològic / Digital", desc: "Passar hores davant de la pantalla, provar programes nous, resoldre reptes lògics, crear webs o entendre aplicacions i videojocs.", jobs: ["Programador d'apps/videojocs", "Especialista en ciberseguretat", "Tècnic informàtic", "Creador de contingut digital/IA"] },
+            creatiu: { name: "El Creatiu / Dissenyador", desc: "Dibuixar, editar vídeos per a xarxes, crear històries visuals, dissenyar roba o espais i expressar la imaginació artística.", jobs: ["Dissenyador gràfic", "Animador 3D", "Il·lustrador", "Dissenyador de moda", "Editor de vídeo"] },
+            cientific: { name: "El Científic / Investigador", desc: "Fer experiments, preguntar-te el 'perquè' de tot, analitzar dades, mirar per microscopis i investigar sobre salut o natura.", jobs: ["Biotecnòleg", "Investigador de laboratori", "Metge o Infermer", "Farmacèutic"] },
+            social: { name: "El Social / Cuidador", desc: "Ajudar companys, escoltar els altres, organitzar activitats amb persones i preocupar-te pel benestar col·lectiu.", jobs: ["Educador infantil", "Integrador social", "Psicòleg", "Treballador social", "Atenció a la dependència"] },
+            emprenedor: { name: "L'Emprenedor / Negocis", desc: "Pensar idees de negoci, organitzar projectes en grup, liderar, negociar i entendre com funcionen les empreses.", jobs: ["Fundador d'una startup", "Màrqueting digital", "Director de projectes", "Assessor financer"] },
+            tecnic: { name: "El Tècnic / Manetes", desc: "Reparar coses que es trenquen, muntar i desmuntar aparells, utilitzar eines i construir amb les mans.", jobs: ["Mecànic", "Instal·lador d'energia solar", "Tècnic en robòtica", "Electricista", "Fuster avançat"] },
+            esportiu: { name: "L'Esportiu / Moviment", desc: "Practicar esports, moure't, estar a l'aire lliure, cuidar el teu cos i entrenar a altres persones.", jobs: ["Entrenador personal", "Fisioterapeuta", "Instructor d'aventura", "Preparador físic"] },
+            comunicador: { name: "El Comunicador / Portaveu", desc: "Parlar en públic, participar en debats, escriure relats o articles, aprendre idiomes i explicar històries.", jobs: ["Periodista", "Traductor / Intèrpret", "Relacions Públiques", "Advocat", "Copywriter"] },
+            mediambient: { name: "La Natura i Medi Ambient", desc: "Estar a la naturalesa, cuidar animals, protegir el medi ambient, reciclar i aprendre sobre els ecosistemes.", jobs: ["Agent rural / Gestor forestal", "Veterinari", "Paisatgista", "Tècnic en energies renovables"] },
+            organitzador: { name: "L'Organitzador / Projectes", desc: "Posar ordre en el caos, planificar horaris, fer llistes de tasques i coordinar que un treball en grup surti perfecte.", jobs: ["Gestor de logística", "Operador internacional", "Organitzador d'esdeveniments", "Administrador"] },
+            hosteleria: { name: "L'Hosteleria i Turisme", desc: "Cuinar o provar plats nous, viatjar, conèixer cultures i fer que la gent s'ho passi bé i se senti acollida.", jobs: ["Xef de cuina", "Director d'hotel", "Guia turístic", "Organitzador de viatges"] },
+            seguretat: { name: "Seguretat i Justícia", desc: "Fer complir les normes, defensar el que és just, protegir els altres davant del perill i ajudar en emergències.", jobs: ["Policia / Mosso", "Bomber", "Tècnic d'emergències sanitàries", "Vigilant especialitzat"] }
+        };
+
+        const questions = [
+            {
+                text: "1. Què t'agrada més fer en el teu temps lliure?",
+                answers: [
+                    { text: "Jugar a videojocs, programar o provar aplicacions noves", profile: "tecnologic" },
+                    { text: "Dibuixar, dissenyar, editar fotos o crear vídeos", profile: "creatiu" },
+                    { text: "Fer esport, anar en bicicleta o moure't a l'aire lliure", profile: "esportiu" },
+                    { text: "Llegir, escriure històries o xatejar i debatre amb amics", profile: "comunicador" }
+                ]
+            },
+            {
+                text: "2. Quan teniu un treball en grup a classe, quin paper acostumes a assumir?",
+                answers: [
+                    { text: "Organitzar els horaris, repartir feines i vigilar els terminis", profile: "organitzador" },
+                    { text: "Ajudar a tothom, animar el grup i resoldre conflictes", profile: "social" },
+                    { text: "Proposar idees originals, innovadores i fer la presentació visual", profile: "emprenedor" },
+                    { text: "Fer la part tècnica, buscar dades lògiques o muntar el format digital", profile: "tecnologic" }
+                ]
+            },
+            {
+                text: "3. Quina assignatura o àmbit escolar et resulta més interessant?",
+                answers: [
+                    { text: "Biologia, laboratori, fer experiments i entendre la natura", profile: "cientific" },
+                    { text: "Tecnologia, tallers, mecànica o entendre com funcionen les màquines", profile: "tecnic" },
+                    { text: "El medi ambient, la cura dels animals i la sostenibilitat", profile: "mediambient" },
+                    { text: "La història, les lleis socials, la justícia o la filosofia", profile: "seguretat" }
+                ]
+            },
+            {
+                text: "4. Si haguessis de triar un lloc de treball ideal pel futur, on t'imagines?",
+                answers: [
+                    { text: "Davant d'ordinadors potents creant programari o protegir sistemes", profile: "tecnologic" },
+                    { text: "En un estudi de disseny, una agència de publicitat o un plató", profile: "creatiu" },
+                    { text: "En un laboratori modern o un centre de recerca mèdica", profile: "cientific" },
+                    { text: "En una escola, centre cívic o ajudant directament a persones", profile: "social" }
+                ]
+            },
+            {
+                text: "5. Quina d' aquestes activitats et sembla més entretinguda?",
+                answers: [
+                    { text: "Crear un negoci propi, una startup o gestionar projectes de vendes", profile: "emprenedor" },
+                    { text: "Arreglar un electrodomèstic trencat o construir mobles amb eines", profile: "tecnic" },
+                    { text: "Fer una ruta de senderisme, acampar o explorar el medi natural", profile: "mediambient" },
+                    { text: "Organitzar un viatge, una festa o un esdeveniment per a molta gent", profile: "hosteleria" }
+                ]
+            },
+            {
+                text: "6. Com valores la importància de les llengües i la comunicació?",
+                answers: [
+                    { text: "M'encanta aprendre idiomes, parlar en públic i expressar-me amb fluïdesa", profile: "comunicador" },
+                    { text: "Crec que és vital per explicar projectes i coordinar equips de treball", profile: "organitzador" },
+                    { text: "M'importa per negociar acords i vendre idees o productes", profile: "emprenedor" },
+                    { text: "Prefereixo treballar amb dades, nombres o objectes abans que parlar tant", profile: "tecnic" }
+                ]
+            },
+            {
+                text: "7. Si tinguessis un problema greu al carrer, com reaccionaries?",
+                answers: [
+                    { text: "Intentaria protegir els afectats, mantenir l'ordre i aplicar les normes", profile: "seguretat" },
+                    { text: "Trucaria immediatament a emergències i ajudaria sanitàriament", profile: "social" },
+                    { text: "Analitzaria la situació amb calma per trobar una solució lògica", profile: "cientific" },
+                    { text: "Coordinaria ràpidament a la gent del voltant per organitzar l'ajuda", profile: "organitzador" }
+                ]
+            },
+            {
+                text: "8. Quin tipus de productes o continguts consumeixes més a internet?",
+                answers: [
+                    { text: "Tutorials de tecnologia, intel·ligència artificial o mecànica de jocs", profile: "tecnologic" },
+                    { text: "Vídeos artístics, animacions, moda, música o disseny gràfic", profile: "creatiu" },
+                    { text: "Canals d'esport, rutines de gimnàs, salut o aventura a l'aire lliure", profile: "esportiu" },
+                    { text: "Viatges, gastronomia, receptes de cuina o guies de turisme", profile: "hosteleria" }
+                ]
+            },
+            {
+                text: "9. Quina d'aquestes frases et defineix millor quan s'acaba un projecte?",
+                answers: [
+                    { text: "'Vull que funcioni perfectament i sense cap error tècnic'", profile: "tecnic" },
+                    { text: "'Vull que sembli bell, original i visualment impactant'", profile: "creatiu" },
+                    { text: "'Vull que hagi servit per ajudar algú o millorar la societat'", profile: "social" },
+                    { text: "'Vull que hagi sigut rendible o que tingui futur econòmic'", profile: "emprenedor" }
+                ]
+            },
+            {
+                text: "10. T'agradaria treballar a l'estranger o envoltat de cultures diferents?",
+                answers: [
+                    { text: "Sí, m'apassiona viatjar, conèixer gastronomia i hotels d'altres països", profile: "hosteleria" },
+                    { text: "Sí, m'agradaria fer de traductor, diplomàtic o relacions internacionals", profile: "comunicador" },
+                    { text: "M'és igual el lloc, mentre pugui investigar i analitzar dades científiques", profile: "cientific" },
+                    { text: "Prefereixo treballar a prop de la natura, boscos o espais protegits locals", profile: "mediambient" }
+                ]
+            },
+            {
+                text: "11. Com t'agradaria mantenir-te en forma o cuidar el teu benestar?",
+                answers: [
+                    { text: "Practicant esports de competició o activitat física intensa diària", profile: "esportiu" },
+                    { text: "Aprenent sobre nutrició, salut física i prevenció de lesions", profile: "cientific" },
+                    { text: "Assegurant-me que el meu entorn de treball estigui net, segur i ordenat", profile: "seguretat" },
+                    { text: "Desconnectant amb videojocs o pantalles a casa", profile: "tecnologic" }
+                ]
+            },
+            {
+                text: "12. Quin seria el teu major orgull d'aquí a uns anys?",
+                answers: [
+                    { text: " haver creat una aplicació o sistema utilitzat per molta gent", profile: "tecnologic" },
+                    { text: " Haver dissenyat obres, roba o continguts reconeguts artísticament", profile: "creatiu" },
+                    { text: " Haver descobert o investigat alguna cosa important per a la ciència", profile: "cientific" },
+                    { text: " Haver creat una empresa pròpia que funcioni amb èxit", profile: "emprenedor" }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let scores = {};
+
+        function startTest() {
+            currentQuestion = 0;
+            scores = {};
+            Object.keys(profiles).forEach(p => scores[p] = 0);
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('question-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-progress').innerText = `Pregunta ${currentQuestion + 1} de ${questions.length}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            const container = document.getElementById('answers-container');
+            container.innerHTML = '';
+            
+            q.answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = ans.text;
+                btn.onclick = () => selectAnswer(ans.profile);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(profile) {
+            scores[profile] = (scores[profile] || 0) + 1;
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('question-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            // Ordenar els perfils de major a menor puntuació
+            let sortedProfiles = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+            
+            let primaryKey = sortedProfiles[0];
+            let secondaryKey = sortedProfiles[1];
+            
+            let pPrimary = profiles[primaryKey];
+            let pSecondary = profiles[secondaryKey];
+
+            const content = document.getElementById('result-content');
+            content.innerHTML = `
+                <div class="result-card">
+                    <h3>🥇 Perfil Principal: ${pPrimary.name}</h3>
+                    <p><strong>Què t'agrada fer:</strong> ${pPrimary.desc}</p>
+                    <p><strong>Treballs concrets:</strong> <span class="tag">${pPrimary.jobs.join('</span> <span class="tag">')}</span></p>
+                </div>
+                <div class="result-card" style="border-left-color: #38bdf8; margin-top: 1rem;">
+                    <h3>🥈 Perfil Secundari: ${pSecondary.name}</h3>
+                    <p><strong>Què t'agrada fer:</strong> ${pSecondary.desc}</p>
+                    <p><strong>Treballs concrets:</strong> <span class="tag">${pSecondary.jobs.join('</span> <span class="tag">')}</span></p>
+                </div>
+            `;
+        }
+
+        function restartTest() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
